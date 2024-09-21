@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard_app/constants/routes.dart';
 import 'package:flutter_dashboard_app/pages/auth_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dashboard_app/pages/cities_page.dart';
+import 'package:flutter_dashboard_app/pages/favorite_places_page.dart';
+import 'package:flutter_dashboard_app/pages/home_page.dart';
+import 'package:flutter_dashboard_app/pages/map_page.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:provider/provider.dart'; // Potrzebne do Providera
 import 'firebase_options.dart';
@@ -29,7 +34,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Weather Matter',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const AuthWrapper(),
+      // Zdefiniowanie routingu
+      initialRoute: AppRoutes.home,
+      routes: {
+        AppRoutes.home: (context) => const AuthWrapper(),
+        AppRoutes.favoriteCities: (context) => const FavoritePlacesPage(),
+        AppRoutes.cities: (context) => const CitiesPage(),
+        AppRoutes.map: (context) => const MapPage(),
+      },
     );
   }
 }
@@ -57,57 +69,6 @@ class AuthWrapper extends StatelessWidget {
           );
         }
       },
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // GlobalStore z listen: true, aby nasłuchiwać zmian
-    final globalStore = Provider.of<GlobalStore>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              globalStore.clearUserData(); // Czyszczenie danych
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'User ID: ${globalStore.userId}',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Login: ${globalStore.login}',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Name: ${globalStore.name}',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Favorite City: ${globalStore.favoriteCity}',
-              style: const TextStyle(fontSize: 18),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
