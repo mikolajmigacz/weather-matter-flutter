@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard_app/services/city/city_types.dart';
 
 class GlobalStore with ChangeNotifier {
   String _userId = "";
   String _login = "";
   String _name = "";
   String _favoriteCity = "";
+  CityDetails? _favoriteCityDetails;
 
-  // Gettery
+  // Getters
   String get userId => _userId;
   String get login => _login;
   String get name => _name;
   String get favoriteCity => _favoriteCity;
+  CityDetails? get favoriteCityDetails => _favoriteCityDetails;
 
-  // Settery
+  // Setters
   void setUserId(String userId) {
     _userId = userId;
     notifyListeners();
@@ -29,11 +32,17 @@ class GlobalStore with ChangeNotifier {
   }
 
   void setFavoriteCity(String favoriteCity) {
-    _favoriteCity = favoriteCity;
+    if (_favoriteCity != favoriteCity) {
+      _favoriteCity = favoriteCity;
+      notifyListeners();
+    }
+  }
+
+  void setCityDetails(CityDetails cityDetails) {
+    _favoriteCityDetails = cityDetails;
     notifyListeners();
   }
 
-  // Metoda do ustawienia wszystkich pól na raz
   void setUserData({
     required String userId,
     required String login,
@@ -47,12 +56,12 @@ class GlobalStore with ChangeNotifier {
     notifyListeners();
   }
 
-  // Czyszczenie danych podczas wylogowania
   void clearUserData() {
     _userId = "";
     _login = "";
     _name = "";
     _favoriteCity = "";
+    _favoriteCityDetails = null;
     notifyListeners();
   }
 }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard_app/constants/routes.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
@@ -60,6 +61,30 @@ class AppDrawer extends StatelessWidget {
                       title: 'Mapa',
                       route: AppRoutes.map,
                       currentRoute: currentRoute),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+                        globalStore.clearUserData();
+                        Navigator.pushReplacementNamed(context, AppRoutes.home);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.teal,
+                        foregroundColor: AppColors.lightestGray,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Wyloguj się',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
