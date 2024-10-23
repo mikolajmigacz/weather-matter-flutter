@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard_app/services/city/city_types.dart';
+import 'package:flutter_dashboard_app/services/currentConditions/current_conditions_types.dart';
 
 class GlobalStore with ChangeNotifier {
   String _userId = "";
@@ -7,6 +8,7 @@ class GlobalStore with ChangeNotifier {
   String _name = "";
   String _favoriteCity = "";
   CityDetails? _favoriteCityDetails;
+  CurrentConditions? _currentConditions;
 
   // Getters
   String get userId => _userId;
@@ -14,6 +16,7 @@ class GlobalStore with ChangeNotifier {
   String get name => _name;
   String get favoriteCity => _favoriteCity;
   CityDetails? get favoriteCityDetails => _favoriteCityDetails;
+  CurrentConditions? get currentConditions => _currentConditions;
 
   // Setters
   void setUserId(String userId) {
@@ -43,6 +46,11 @@ class GlobalStore with ChangeNotifier {
     notifyListeners();
   }
 
+  void setCurrentConditions(CurrentConditions currentConditions) {
+    _currentConditions = currentConditions;
+    notifyListeners();
+  }
+
   void setUserData({
     required String userId,
     required String login,
@@ -62,6 +70,7 @@ class GlobalStore with ChangeNotifier {
     _name = "";
     _favoriteCity = "";
     _favoriteCityDetails = null;
+    _currentConditions = null;
     notifyListeners();
   }
 }

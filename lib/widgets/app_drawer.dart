@@ -17,7 +17,7 @@ class AppDrawer extends StatelessWidget {
 
     return Drawer(
       child: Container(
-        color: AppColors.darkestGray,
+        color: AppColors.darkGray,
         child: Column(
           children: <Widget>[
             Container(
