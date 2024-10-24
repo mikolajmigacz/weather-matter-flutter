@@ -12,11 +12,7 @@ class FavoriteCityWeather extends StatelessWidget {
       builder: (context, globalStore, child) {
         return Container(
           height: 200,
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: AppColors.darkGray,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -51,7 +47,7 @@ class FavoriteCityWeather extends StatelessWidget {
                 ],
               ),
               Image.network(
-                'https://apidev.accuweather.com/developers/Media/Default/WeatherIcons/06-s.png',
+                'https://apidev.accuweather.com/developers/Media/Default/WeatherIcons/0${globalStore.currentConditions?.weatherIcon}-s.png',
                 width: 150.0,
                 height: 150.0,
                 fit: BoxFit.contain,
