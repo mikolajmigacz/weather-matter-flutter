@@ -8,11 +8,13 @@ import 'package:flutter_svg/svg.dart';
 class CitySearchItem extends StatefulWidget {
   final AutocompleteCity city;
   final VoidCallback onTap;
+  final bool isSelected;
 
   const CitySearchItem({
     Key? key,
     required this.city,
     required this.onTap,
+    this.isSelected = false,
   }) : super(key: key);
 
   @override
@@ -53,19 +55,20 @@ class _CitySearchItemState extends State<CitySearchItem> {
 
   @override
   Widget build(BuildContext context) {
+    final isActiveState = widget.isSelected || _isHovered;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.7,
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: _isHovered ? AppColors.darkestGray : AppColors.darkGray,
+            color: isActiveState ? AppColors.darkestGray : AppColors.darkGray,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _isHovered ? AppColors.teal : Colors.transparent,
+              color: isActiveState ? AppColors.teal : Colors.transparent,
               width: 1,
             ),
           ),

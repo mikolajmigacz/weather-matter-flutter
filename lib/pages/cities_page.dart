@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard_app/services/autocomplete/autocomplete.dart';
+import 'package:flutter_dashboard_app/services/currentConditions/current_conditions.dart';
+import 'package:flutter_dashboard_app/services/city/city_types.dart'
+    as city_types;
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:flutter_dashboard_app/widgets/app_drawer.dart';
 import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.dart';
@@ -21,6 +24,7 @@ class _CitiesPageState extends State<CitiesPage> {
   String? _error;
   List<AutocompleteCity>? _searchResults;
   late final AutocompleteService _autocompleteService;
+  late final CurrentConditionsService _currentConditionsService;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -28,6 +32,7 @@ class _CitiesPageState extends State<CitiesPage> {
     super.initState();
     final store = Provider.of<GlobalStore>(context, listen: false);
     _autocompleteService = AutocompleteService();
+    _currentConditionsService = CurrentConditionsService(store);
   }
 
   @override
@@ -39,6 +44,10 @@ class _CitiesPageState extends State<CitiesPage> {
 
   Future<void> _onSearchChanged(String query) async {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    // Reset selected city immediately when search changes
+    final store = Provider.of<GlobalStore>(context, listen: false);
+    store.setSelectedCity(null);
 
     if (query.isEmpty) {
       setState(() {
@@ -70,8 +79,33 @@ class _CitiesPageState extends State<CitiesPage> {
     });
   }
 
+  Future<void> _fetchCityConditions(
+      AutocompleteCity city, GlobalStore store) async {
+    try {
+      store.setCityDetails(city_types.CityDetails(
+        key: city.key,
+        localizedName: city.localizedName,
+        englishName: city.localizedName,
+        region: city_types.Region(id: "", localizedName: "", englishName: ''),
+        country: city_types.Country(
+            id: city.country.id,
+            localizedName: city.country.name,
+            englishName: ''),
+      ));
+
+      final conditions =
+          await _currentConditionsService.fetchCurrentConditions();
+      store.setSelectedCityConditions(conditions);
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    }
+  }
+
   Widget _buildSearchInput() {
     return Container(
+      width: double.infinity, // 100% szerokości
       decoration: BoxDecoration(
         color: AppColors.darkGray,
         borderRadius: BorderRadius.circular(16),
@@ -98,6 +132,65 @@ class _CitiesPageState extends State<CitiesPage> {
             borderSide: const BorderSide(color: AppColors.teal),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedCityDetails() {
+    final store = context.watch<GlobalStore>();
+    final selectedCity = store.selectedCity;
+    final conditions = store.selectedCityConditions;
+
+    if (selectedCity == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.darkGray,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            selectedCity.localizedName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${selectedCity.country.name}, ${selectedCity.administrativeArea.name}',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 16,
+            ),
+          ),
+          if (conditions != null) ...[
+            const SizedBox(height: 24),
+            Text(
+              'Temperatura: ${conditions.temperature.value}°${conditions.temperature.unit}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Wilgotność: ${conditions.relativeHumidity}%',
+              style: const TextStyle(color: Colors.white),
+            ),
+            Text(
+              'Prędkość wiatru: ${conditions.windSpeed} km/h',
+              style: const TextStyle(color: Colors.white),
+            ),
+            Text(
+              'UV Index: ${conditions.uvIndex}',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -181,14 +274,17 @@ class _CitiesPageState extends State<CitiesPage> {
       itemCount: _searchResults!.length,
       itemBuilder: (context, index) {
         final city = _searchResults![index];
-        return Center(
-          child: CitySearchItem(
-            city: city,
-            onTap: () {
-              // Handle city selection
-              print('Selected city: ${city.localizedName}');
-            },
-          ),
+        final store = context.watch<GlobalStore>();
+        final isSelected = store.selectedCity?.key == city.key;
+
+        return CitySearchItem(
+          city: city,
+          isSelected: isSelected,
+          onTap: () {
+            final store = Provider.of<GlobalStore>(context, listen: false);
+            store.setSelectedCity(city);
+            _fetchCityConditions(city, store);
+          },
         );
       },
     );
@@ -196,6 +292,8 @@ class _CitiesPageState extends State<CitiesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final store = context.watch<GlobalStore>();
+
     return Scaffold(
       backgroundColor: AppColors.darkestGray,
       body: Row(
@@ -209,7 +307,24 @@ class _CitiesPageState extends State<CitiesPage> {
                   _buildSearchInput(),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: _buildContent(),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Lista wyników - 70% szerokości
+                        Expanded(
+                          flex: 70,
+                          child: _buildContent(),
+                        ),
+                        // Szczegóły wybranego miasta - 30% szerokości
+                        if (store.selectedCity != null) ...[
+                          const SizedBox(width: 24),
+                          Expanded(
+                            flex: 30,
+                            child: _buildSelectedCityDetails(),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ],
               ),

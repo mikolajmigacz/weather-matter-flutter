@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeData(GlobalStore store) async {
-    if (_isLoading) return; // Prevent multiple simultaneous fetches
+    if (_isLoading) return;
 
     setState(() {
       _isLoading = true;
@@ -78,8 +78,11 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (store.favoriteCityDetails != null) {
+        final currentConditions =
+            await _currentConditionsService.fetchCurrentConditions();
+        store.setCurrentConditions(currentConditions);
+
         await Future.wait([
-          _currentConditionsService.fetchCurrentConditions(),
           _fetchForecast(),
           _fetchFiveDayForecast(),
         ]);

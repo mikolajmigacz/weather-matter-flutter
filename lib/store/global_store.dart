@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.dart';
 import 'package:flutter_dashboard_app/services/city/city_types.dart';
 import 'package:flutter_dashboard_app/services/currentConditions/current_conditions_types.dart';
 
@@ -9,6 +10,8 @@ class GlobalStore with ChangeNotifier {
   String _favoriteCity = "";
   CityDetails? _favoriteCityDetails;
   CurrentConditions? _currentConditions;
+  AutocompleteCity? _selectedCity;
+  CurrentConditions? _selectedCityConditions;
 
   // Getters
   String get userId => _userId;
@@ -17,6 +20,8 @@ class GlobalStore with ChangeNotifier {
   String get favoriteCity => _favoriteCity;
   CityDetails? get favoriteCityDetails => _favoriteCityDetails;
   CurrentConditions? get currentConditions => _currentConditions;
+  AutocompleteCity? get selectedCity => _selectedCity;
+  CurrentConditions? get selectedCityConditions => _selectedCityConditions;
 
   // Setters
   void setUserId(String userId) {
@@ -71,6 +76,19 @@ class GlobalStore with ChangeNotifier {
     _favoriteCity = "";
     _favoriteCityDetails = null;
     _currentConditions = null;
+    _selectedCity = null;
+    _selectedCityConditions = null;
+    notifyListeners();
+  }
+
+  void setSelectedCity(AutocompleteCity? city) {
+    _selectedCity = city;
+    _selectedCityConditions = null;
+    notifyListeners();
+  }
+
+  void setSelectedCityConditions(CurrentConditions? conditions) {
+    _selectedCityConditions = conditions;
     notifyListeners();
   }
 }

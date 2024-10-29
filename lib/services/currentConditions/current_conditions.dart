@@ -13,7 +13,7 @@ class CurrentConditionsService {
 
   CurrentConditionsService(this._globalStore);
 
-  Future<void> fetchCurrentConditions() async {
+  Future<CurrentConditions> fetchCurrentConditions() async {
     try {
       if (_globalStore.favoriteCityDetails == null) {
         throw Exception('No favorite city selected');
@@ -39,8 +39,7 @@ class CurrentConditionsService {
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = jsonDecode(response.body);
         if (jsonResponse.isNotEmpty) {
-          final currentConditions = CurrentConditions.fromJson(jsonResponse[0]);
-          _globalStore.setCurrentConditions(currentConditions);
+          return CurrentConditions.fromJson(jsonResponse[0]);
         } else {
           throw Exception('Empty response from API');
         }
@@ -53,19 +52,11 @@ class CurrentConditionsService {
     }
   }
 
-  String getFormattedTemperature() {
-    final conditions = _globalStore.currentConditions;
-    if (conditions == null) return 'N/A';
+  String formatTemperature(CurrentConditions conditions) {
     return '${conditions.temperature.value}${conditions.temperature.unit}';
   }
 
-  String getFormattedWindSpeed() {
-    final conditions = _globalStore.currentConditions;
-    if (conditions == null) return 'N/A';
+  String formatWindSpeed(CurrentConditions conditions) {
     return '${conditions.windSpeed} km/h';
-  }
-
-  bool hasCurrentConditions() {
-    return _globalStore.currentConditions != null;
   }
 }
