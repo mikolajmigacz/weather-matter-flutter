@@ -29,7 +29,7 @@ class FavoriteCityWeather extends StatelessWidget {
                   ),
                   const SizedBox(height: 4.0),
                   Text(
-                    'Real feel temperature: ${globalStore.currentConditions?.realFeelTemperature.value} °${globalStore.currentConditions?.realFeelTemperature.unit}',
+                    'Temperatura odczuwalna: ${globalStore.currentConditions?.realFeelTemperature.value} °${globalStore.currentConditions?.realFeelTemperature.unit}',
                     style: const TextStyle(
                       color: AppColors.teal,
                       fontSize: 16.0,
@@ -47,7 +47,7 @@ class FavoriteCityWeather extends StatelessWidget {
                 ],
               ),
               Image.network(
-                'https://apidev.accuweather.com/developers/Media/Default/WeatherIcons/0${globalStore.currentConditions?.weatherIcon}-s.png',
+                'https://apidev.accuweather.com/developers/Media/Default/WeatherIcons/${globalStore.currentConditions?.weatherIcon != null && globalStore.currentConditions!.weatherIcon < 10 ? "0${globalStore.currentConditions?.weatherIcon}" : globalStore.currentConditions?.weatherIcon}-s.png',
                 width: 150.0,
                 height: 150.0,
                 fit: BoxFit.contain,

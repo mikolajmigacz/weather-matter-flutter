@@ -33,6 +33,7 @@ class CurrentConditions {
   final double windSpeed;
   final int uvIndex;
   final String uvIndexText;
+  final int relativeHumidity;
 
   CurrentConditions({
     required this.weatherText,
@@ -42,28 +43,30 @@ class CurrentConditions {
     required this.windSpeed,
     required this.uvIndex,
     required this.uvIndexText,
+    required this.relativeHumidity,
   });
 
   factory CurrentConditions.fromJson(Map<String, dynamic> json) {
     return CurrentConditions(
-      weatherText: json['WeatherText'],
-      weatherIcon: json['WeatherIcon'],
-      temperature: Temperature.fromJson(json['Temperature']),
-      windSpeed: json['Wind']['Speed']['Metric']['Value'].toDouble(),
-      uvIndex: json['UVIndex'],
-      uvIndexText: json['UVIndexText'],
-      realFeelTemperature: Temperature.fromJson(json['RealFeelTemperature']),
-    );
+        weatherText: json['WeatherText'],
+        weatherIcon: json['WeatherIcon'],
+        temperature: Temperature.fromJson(json['Temperature']),
+        windSpeed: json['Wind']['Speed']['Metric']['Value'].toDouble(),
+        uvIndex: json['UVIndex'],
+        uvIndexText: json['UVIndexText'],
+        realFeelTemperature: Temperature.fromJson(json['RealFeelTemperature']),
+        relativeHumidity: json['RelativeHumidity']);
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'weatherText': weatherText,
-      'weatherIcon': weatherIcon,
-      'temperature': temperature.toJson(),
+      'WeatherText': weatherText,
+      'WeatherIcon': weatherIcon,
+      'Temperature': temperature.toJson(),
       'windSpeed': windSpeed,
       'uvIndex': uvIndex,
       'uvIndexText': uvIndexText,
+      'RelativeHumidity': relativeHumidity
     };
   }
 
@@ -77,13 +80,13 @@ class CurrentConditions {
     Temperature? realFeelTemperature,
   }) {
     return CurrentConditions(
-      weatherText: weatherText ?? this.weatherText,
-      weatherIcon: weatherIcon ?? this.weatherIcon,
-      temperature: temperature ?? this.temperature,
-      windSpeed: windSpeed ?? this.windSpeed,
-      uvIndex: uvIndex ?? this.uvIndex,
-      uvIndexText: uvIndexText ?? this.uvIndexText,
-      realFeelTemperature: realFeelTemperature ?? this.realFeelTemperature,
-    );
+        weatherText: weatherText ?? this.weatherText,
+        weatherIcon: weatherIcon ?? this.weatherIcon,
+        temperature: temperature ?? this.temperature,
+        windSpeed: windSpeed ?? this.windSpeed,
+        uvIndex: uvIndex ?? this.uvIndex,
+        uvIndexText: uvIndexText ?? this.uvIndexText,
+        realFeelTemperature: realFeelTemperature ?? this.realFeelTemperature,
+        relativeHumidity: relativeHumidity);
   }
 }

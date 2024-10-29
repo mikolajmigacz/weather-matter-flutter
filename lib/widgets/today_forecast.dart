@@ -29,7 +29,7 @@ class TodayForecast extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Today forecast',
+            'Prognoza godzinowa',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
