@@ -6,6 +6,7 @@ import 'package:flutter_dashboard_app/services/city/city_types.dart'
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:flutter_dashboard_app/widgets/app_drawer.dart';
 import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.dart';
+import 'package:flutter_dashboard_app/widgets/city_search_details.dart';
 import 'package:flutter_dashboard_app/widgets/city_search_item.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
@@ -136,65 +137,6 @@ class _CitiesPageState extends State<CitiesPage> {
     );
   }
 
-  Widget _buildSelectedCityDetails() {
-    final store = context.watch<GlobalStore>();
-    final selectedCity = store.selectedCity;
-    final conditions = store.selectedCityConditions;
-
-    if (selectedCity == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.darkGray,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            selectedCity.localizedName,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${selectedCity.country.name}, ${selectedCity.administrativeArea.name}',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: 16,
-            ),
-          ),
-          if (conditions != null) ...[
-            const SizedBox(height: 24),
-            Text(
-              'Temperatura: ${conditions.temperature.value}°${conditions.temperature.unit}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Wilgotność: ${conditions.relativeHumidity}%',
-              style: const TextStyle(color: Colors.white),
-            ),
-            Text(
-              'Prędkość wiatru: ${conditions.windSpeed} km/h',
-              style: const TextStyle(color: Colors.white),
-            ),
-            Text(
-              'UV Index: ${conditions.uvIndex}',
-              style: const TextStyle(color: Colors.white),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildContent() {
     if (_isLoading) {
       return const Center(
@@ -320,7 +262,7 @@ class _CitiesPageState extends State<CitiesPage> {
                           const SizedBox(width: 24),
                           Expanded(
                             flex: 30,
-                            child: _buildSelectedCityDetails(),
+                            child: CitySearchDetails(store: store),
                           ),
                         ],
                       ],
