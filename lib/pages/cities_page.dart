@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard_app/services/autocomplete/autocomplete.dart';
 import 'package:flutter_dashboard_app/services/currentConditions/current_conditions.dart';
-import 'package:flutter_dashboard_app/services/city/city_types.dart'
-    as city_types;
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:flutter_dashboard_app/widgets/app_drawer.dart';
 import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.dart';
@@ -83,19 +81,10 @@ class _CitiesPageState extends State<CitiesPage> {
   Future<void> _fetchCityConditions(
       AutocompleteCity city, GlobalStore store) async {
     try {
-      store.setCityDetails(city_types.CityDetails(
-        key: city.key,
-        localizedName: city.localizedName,
-        englishName: city.localizedName,
-        region: city_types.Region(id: "", localizedName: "", englishName: ''),
-        country: city_types.Country(
-            id: city.country.id,
-            localizedName: city.country.name,
-            englishName: ''),
-      ));
+      store.setSelectedCity(city);
 
       final conditions =
-          await _currentConditionsService.fetchCurrentConditions();
+          await _currentConditionsService.fetchCurrentConditions(city.key);
       store.setSelectedCityConditions(conditions);
     } catch (e) {
       setState(() {

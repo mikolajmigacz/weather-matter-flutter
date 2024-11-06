@@ -12,6 +12,7 @@ class GlobalStore with ChangeNotifier {
   CurrentConditions? _currentConditions;
   AutocompleteCity? _selectedCity;
   CurrentConditions? _selectedCityConditions;
+  List<AutocompleteCity> _favoriteCities = [];
 
   // Getters
   String get userId => _userId;
@@ -22,6 +23,7 @@ class GlobalStore with ChangeNotifier {
   CurrentConditions? get currentConditions => _currentConditions;
   AutocompleteCity? get selectedCity => _selectedCity;
   CurrentConditions? get selectedCityConditions => _selectedCityConditions;
+  List<AutocompleteCity> get favoriteCities => _favoriteCities;
 
   // Setters
   void setUserId(String userId) {
@@ -46,7 +48,7 @@ class GlobalStore with ChangeNotifier {
     }
   }
 
-  void setCityDetails(CityDetails cityDetails) {
+  void setFavoriteCityDetails(CityDetails cityDetails) {
     _favoriteCityDetails = cityDetails;
     notifyListeners();
   }
@@ -78,6 +80,7 @@ class GlobalStore with ChangeNotifier {
     _currentConditions = null;
     _selectedCity = null;
     _selectedCityConditions = null;
+    _favoriteCities = [];
     notifyListeners();
   }
 
@@ -89,6 +92,11 @@ class GlobalStore with ChangeNotifier {
 
   void setSelectedCityConditions(CurrentConditions? conditions) {
     _selectedCityConditions = conditions;
+    notifyListeners();
+  }
+
+  void setFavoriteCities(List<AutocompleteCity> cities) {
+    _favoriteCities = cities;
     notifyListeners();
   }
 }

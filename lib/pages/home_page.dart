@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard_app/services/city/city_types.dart';
 import 'package:flutter_dashboard_app/services/currentConditions/current_conditions.dart';
+import 'package:flutter_dashboard_app/services/favoriteCity/favorite_city.dart';
 import 'package:flutter_dashboard_app/services/twelveHoursForecast/twelve_hours_forecast.dart';
 import 'package:flutter_dashboard_app/services/twelveHoursForecast/twelve_hours_forecast_types.dart';
 import 'package:flutter_dashboard_app/services/fiveDaysForecast/five_days_forecast.dart';
@@ -26,20 +28,21 @@ class _HomePageState extends State<HomePage> {
   late final CurrentConditionsService _currentConditionsService;
   late final TwelveHoursForecastService _twelveHoursForecastService;
   late final FiveDaysForecastService _fiveDaysForecastService;
+  late final FavoriteCityService _favoriteCityService; // Add this
   List<HourForecast>? _forecasts;
   List<DayForecast>? _fiveDayForecasts;
   bool _isLoading = false;
   String? _error;
-  String? _lastFetchedCity;
 
   @override
   void initState() {
     super.initState();
     final store = Provider.of<GlobalStore>(context, listen: false);
-    _cityInfoService = CityInfoService(store);
+    _cityInfoService = CityInfoService();
     _currentConditionsService = CurrentConditionsService(store);
     _twelveHoursForecastService = TwelveHoursForecastService(store);
     _fiveDaysForecastService = FiveDaysForecastService(store);
+    _favoriteCityService = FavoriteCityService(store); // Add this
   }
 
   @override
@@ -47,21 +50,36 @@ class _HomePageState extends State<HomePage> {
     super.didChangeDependencies();
     final store = Provider.of<GlobalStore>(context);
 
-    // Check if we need to fetch data
+    // First load favorite cities if needed
+    if (store.userId.isNotEmpty && store.favoriteCities.isEmpty) {
+      _loadFavoriteCities();
+    }
+
+    // Then check if we need to fetch weather data
     if (store.favoriteCity.isNotEmpty && _shouldFetchData(store)) {
-      _lastFetchedCity = store.favoriteCity;
       _initializeData(store);
     }
   }
 
+  // Add this method
+  Future<void> _loadFavoriteCities() async {
+    try {
+      final response = await _favoriteCityService.getFavoriteCities();
+      if (!response.success) {
+        setState(() {
+          _error = response.error;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load favorite cities: ${e.toString()}';
+      });
+    }
+  }
+
   bool _shouldFetchData(GlobalStore store) {
-    // Fetch only if:
-    // 1. We don't have any forecasts yet
-    // 2. OR the city has changed
-    // 3. OR we have city details but no conditions data
     return _forecasts == null ||
-        _lastFetchedCity != store.favoriteCity ||
-        (store.favoriteCityDetails != null && store.currentConditions == null);
+        (store.favoriteCityDetails == null && store.currentConditions == null);
   }
 
   Future<void> _initializeData(GlobalStore store) async {
@@ -74,12 +92,14 @@ class _HomePageState extends State<HomePage> {
 
     try {
       if (store.favoriteCityDetails == null) {
-        await _cityInfoService.fetchAndStoreCityDetails(store.favoriteCity);
+        CityDetails? favoriteCityDetails =
+            await _cityInfoService.fetchCityDetails(store.favoriteCity);
+        store.setFavoriteCityDetails(favoriteCityDetails!);
       }
 
       if (store.favoriteCityDetails != null) {
-        final currentConditions =
-            await _currentConditionsService.fetchCurrentConditions();
+        final currentConditions = await _currentConditionsService
+            .fetchCurrentConditions(store.favoriteCityDetails!.key);
         store.setCurrentConditions(currentConditions);
 
         await Future.wait([

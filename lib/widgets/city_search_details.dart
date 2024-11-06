@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard_app/services/favoriteCity/favorite_city.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 
@@ -39,8 +40,43 @@ class CitySearchDetails extends StatelessWidget {
   Widget _buildWeatherIcon(int? weatherIcon) {
     return Image.network(
         'https://apidev.accuweather.com/developers/Media/Default/WeatherIcons/${weatherIcon != null && weatherIcon < 10 ? "0${weatherIcon}" : weatherIcon}-s.png',
-        width: 100,
-        height: 100);
+        width: 75,
+        height: 75);
+  }
+
+  Widget _buildFavoriteButton(BuildContext context, bool isFavorite) {
+    return IconButton(
+      icon: Icon(
+        isFavorite ? Icons.favorite : Icons.favorite_border,
+        color: isFavorite ? AppColors.teal : Colors.white,
+        size: 28,
+      ),
+      onPressed: () async {
+        final favoriteService = FavoriteCityService(store);
+
+        if (isFavorite) {
+          final response =
+              await favoriteService.removeFavoriteCity(store.selectedCity!.key);
+          if (!response.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(
+                      response.error ?? 'Failed to remove from favorites')),
+            );
+          }
+        } else {
+          final response =
+              await favoriteService.addFavoriteCity(store.selectedCity!);
+          if (!response.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content:
+                      Text(response.error ?? 'Failed to add to favorites')),
+            );
+          }
+        }
+      },
+    );
   }
 
   @override
@@ -51,6 +87,9 @@ class CitySearchDetails extends StatelessWidget {
     if (selectedCity == null) {
       return const SizedBox.shrink();
     }
+
+    final isFavorite =
+        store.favoriteCities.any((city) => city.key == selectedCity.key);
 
     return Container(
       decoration: BoxDecoration(
@@ -70,28 +109,40 @@ class CitySearchDetails extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    selectedCity.localizedName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+              // Left side: City info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // City name and favorite button in one row
+                    Row(
+                      children: [
+                        Text(
+                          selectedCity.localizedName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFavoriteButton(context, isFavorite),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${selectedCity.country.name}, ${selectedCity.administrativeArea.name}',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
-                      fontSize: 16,
+                    const SizedBox(height: 8),
+                    Text(
+                      '${selectedCity.country.name}, ${selectedCity.administrativeArea.name}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              // Right side: Weather icon
               _buildWeatherIcon(conditions?.weatherIcon),
             ],
           ),

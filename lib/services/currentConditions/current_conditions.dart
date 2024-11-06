@@ -13,13 +13,12 @@ class CurrentConditionsService {
 
   CurrentConditionsService(this._globalStore);
 
-  Future<CurrentConditions> fetchCurrentConditions() async {
+  Future<CurrentConditions> fetchCurrentConditions(String cityKey) async {
     try {
       if (_globalStore.favoriteCityDetails == null) {
         throw Exception('No favorite city selected');
       }
 
-      final cityKey = _globalStore.favoriteCityDetails!.key;
       final apiKey = dotenv.env['ACCU_WEATHER_KEY'];
 
       if (apiKey == null) {
