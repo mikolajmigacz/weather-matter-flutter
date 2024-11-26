@@ -93,14 +93,88 @@ class _CitiesPageState extends State<CitiesPage> {
     }
   }
 
+  Widget _buildDesktopContent(BuildContext context, GlobalStore store) {
+    return Row(
+      children: [
+        const ResponsiveDrawer(),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              children: [
+                _buildSearchInput(),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 70,
+                        child: _buildContent(),
+                      ),
+                      if (store.selectedCity != null) ...[
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 30,
+                          child: CitySearchDetails(store: store),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileContent(BuildContext context, GlobalStore store) {
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: AppColors.darkGray,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+          elevation: 0,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildSearchInput(),
+                const SizedBox(height: 16),
+                if (store.selectedCity != null) ...[
+                  CitySearchDetails(store: store),
+                  const SizedBox(height: 16),
+                ],
+                Expanded(
+                  child: _buildContent(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSearchInput() {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     return Container(
-      width: double.infinity, // 100% szerokości
+      width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.darkGray,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isDesktop ? 16 : 12),
       ),
-      padding: const EdgeInsets.all(24),
+      padding: isDesktop ? const EdgeInsets.all(24) : const EdgeInsets.all(16),
       child: TextField(
         controller: _searchController,
         onChanged: _onSearchChanged,
@@ -127,6 +201,8 @@ class _CitiesPageState extends State<CitiesPage> {
   }
 
   Widget _buildContent() {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -161,7 +237,7 @@ class _CitiesPageState extends State<CitiesPage> {
           children: [
             Icon(
               Icons.search_outlined,
-              size: 100,
+              size: isDesktop ? 100 : 80,
               color: Colors.white.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
@@ -169,8 +245,9 @@ class _CitiesPageState extends State<CitiesPage> {
               'Wpisz w pasku wyszukiwania, aby znaleźć miasto',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
-                fontSize: 16,
+                fontSize: isDesktop ? 16 : 14,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -184,7 +261,7 @@ class _CitiesPageState extends State<CitiesPage> {
           children: [
             Icon(
               Icons.location_city,
-              size: 64,
+              size: isDesktop ? 64 : 48,
               color: Colors.white.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
@@ -192,7 +269,7 @@ class _CitiesPageState extends State<CitiesPage> {
               'Nie znaleziono miast',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
-                fontSize: 16,
+                fontSize: isDesktop ? 16 : 14,
               ),
             ),
           ],
@@ -201,21 +278,24 @@ class _CitiesPageState extends State<CitiesPage> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.symmetric(vertical: isDesktop ? 16 : 8),
       itemCount: _searchResults!.length,
       itemBuilder: (context, index) {
         final city = _searchResults![index];
         final store = context.watch<GlobalStore>();
         final isSelected = store.selectedCity?.key == city.key;
 
-        return CitySearchItem(
-          city: city,
-          isSelected: isSelected,
-          onTap: () {
-            final store = Provider.of<GlobalStore>(context, listen: false);
-            store.setSelectedCity(city);
-            _fetchCityConditions(city, store);
-          },
+        return Padding(
+          padding: EdgeInsets.only(bottom: isDesktop ? 16 : 8),
+          child: CitySearchItem(
+            city: city,
+            isSelected: isSelected,
+            onTap: () {
+              final store = Provider.of<GlobalStore>(context, listen: false);
+              store.setSelectedCity(city);
+              _fetchCityConditions(city, store);
+            },
+          ),
         );
       },
     );
@@ -223,46 +303,15 @@ class _CitiesPageState extends State<CitiesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
     final store = context.watch<GlobalStore>();
 
     return Scaffold(
       backgroundColor: AppColors.darkestGray,
-      body: Row(
-        children: [
-          const AppDrawer(),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                children: [
-                  _buildSearchInput(),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Lista wyników - 70% szerokości
-                        Expanded(
-                          flex: 70,
-                          child: _buildContent(),
-                        ),
-                        // Szczegóły wybranego miasta - 30% szerokości
-                        if (store.selectedCity != null) ...[
-                          const SizedBox(width: 24),
-                          Expanded(
-                            flex: 30,
-                            child: CitySearchDetails(store: store),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+      drawer: isDesktop ? null : const ResponsiveDrawer(),
+      body: isDesktop
+          ? _buildDesktopContent(context, store)
+          : _buildMobileContent(context, store),
     );
   }
 }

@@ -1,14 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dashboard_app/constants/firestore_constants.dart';
 import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.dart';
+import 'package:flutter_dashboard_app/services/city/city_service.dart';
+import 'package:flutter_dashboard_app/services/city/city_types.dart';
 import 'package:flutter_dashboard_app/services/favoriteCity/favorite_city_types.dart';
+import 'package:flutter_dashboard_app/services/notification/notification.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 
 class FavoriteCityService {
   final GlobalStore _globalStore;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final CityInfoService _cityInfoService;
+  final PushNotificationService _pushNotificationService =
+      PushNotificationService();
 
-  FavoriteCityService(this._globalStore);
+  FavoriteCityService(this._globalStore) {
+    _cityInfoService = CityInfoService();
+  }
 
   Future<FavoriteCityResponse> getFavoriteCities() async {
     try {
@@ -35,8 +43,9 @@ class FavoriteCityService {
         return FavoriteCityResponse(success: true, cities: []);
       }
 
-      final cities = FirestoreCollections.favoriteCities
-          .fromFirestore(docSnapshot.data() ?? {});
+      final cities = FirestoreCollections.citiesInfo.fromFirestoreList(
+          docSnapshot.data()?[FirestoreCollections.favoriteCities.cities] ??
+              []);
 
       _globalStore.setFavoriteCities(cities);
       return FavoriteCityResponse(success: true, cities: cities);
@@ -58,28 +67,48 @@ class FavoriteCityService {
         );
       }
 
+      final cityDetails =
+          await _cityInfoService.fetchCityDetails(city.localizedName);
+      if (cityDetails == null) {
+        return FavoriteCityResponse(
+          success: false,
+          error: 'Failed to fetch city details',
+        );
+      }
+
       final docRef = _firestore
           .collection(FirestoreCollections.favoriteCities.collectionName)
           .doc(userId);
 
       final docSnapshot = await docRef.get();
       final currentCities = docSnapshot.exists
-          ? FirestoreCollections.favoriteCities
-              .fromFirestore(docSnapshot.data() ?? {})
-          : <AutocompleteCity>[];
+          ? FirestoreCollections.citiesInfo.fromFirestoreList(
+              docSnapshot.data()?[FirestoreCollections.favoriteCities.cities] ??
+                  [])
+          : <CityDetails>[];
 
-      if (currentCities.any((c) => c.key == city.key)) {
+      if (currentCities.any((c) => c.key == cityDetails.key)) {
         return FavoriteCityResponse(
           success: false,
           error: 'City already in favorites',
         );
       }
 
-      final updatedCities = [...currentCities, city];
-      await docRef
-          .set(FirestoreCollections.favoriteCities.toFirestore(updatedCities));
+      final updatedCities = [...currentCities, cityDetails];
+      await docRef.set({
+        FirestoreCollections.favoriteCities.cities: updatedCities
+            .map((city) => FirestoreCollections.citiesInfo.toFirestore(city))
+            .toList()
+      });
 
       _globalStore.setFavoriteCities(updatedCities);
+
+      // Show push notification
+      await _pushNotificationService.showNotification(
+        title: 'Nowe ulubione miasto',
+        body: '${cityDetails.localizedName} zostało dodane do ulubionych',
+      );
+
       return FavoriteCityResponse(success: true, cities: updatedCities);
     } catch (e) {
       return FavoriteCityResponse(
@@ -111,15 +140,31 @@ class FavoriteCityService {
         );
       }
 
-      final currentCities = FirestoreCollections.favoriteCities
-          .fromFirestore(docSnapshot.data() ?? {});
+      final currentCities = FirestoreCollections.citiesInfo.fromFirestoreList(
+          docSnapshot.data()?[FirestoreCollections.favoriteCities.cities] ??
+              []);
+
+      // Get city details before removal for notification
+      final cityToRemove =
+          currentCities.firstWhere((city) => city.key == cityKey);
+
       final updatedCities =
           currentCities.where((city) => city.key != cityKey).toList();
 
-      await docRef
-          .set(FirestoreCollections.favoriteCities.toFirestore(updatedCities));
+      await docRef.set({
+        FirestoreCollections.favoriteCities.cities: updatedCities
+            .map((city) => FirestoreCollections.citiesInfo.toFirestore(city))
+            .toList()
+      });
 
       _globalStore.setFavoriteCities(updatedCities);
+
+      // Show push notification
+      await _pushNotificationService.showNotification(
+        title: 'Usunięto miasto z ulubionych',
+        body: '${cityToRemove.localizedName} zostało usunięte z ulubionych',
+      );
+
       return FavoriteCityResponse(success: true, cities: updatedCities);
     } catch (e) {
       return FavoriteCityResponse(

@@ -36,7 +36,6 @@ class CityInfoService {
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       if (data.isNotEmpty) {
-        print(data);
         return CityDetails.fromJson(data[0]);
       }
     }

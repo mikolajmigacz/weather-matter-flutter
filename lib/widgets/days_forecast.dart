@@ -17,9 +17,11 @@ class DaysForecast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     return Container(
       width: MediaQuery.of(context).size.width * 0.2,
-      height: MediaQuery.of(context).size.height * 0.6,
+      height: MediaQuery.of(context).size.height * (isDesktop ? 0.6 : 0.4),
       decoration: BoxDecoration(
         color: AppColors.darkGray,
         borderRadius: BorderRadius.circular(16),
@@ -78,7 +80,7 @@ class DaysForecast extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 24), // Added spacing here
+                      const SizedBox(width: 24),
                       RichText(
                         text: TextSpan(
                           children: [

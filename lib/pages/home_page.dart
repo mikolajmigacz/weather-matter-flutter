@@ -145,6 +145,112 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget _buildDesktopContent() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ResponsiveDrawer(),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 75,
+                  child: Column(
+                    children: [
+                      const FavoriteCityWeather(),
+                      if (_forecasts != null) ...[
+                        const SizedBox(height: 24),
+                        TodayForecast(forecasts: _forecasts!),
+                        const SizedBox(height: 24),
+                        if (context.watch<GlobalStore>().currentConditions !=
+                            null)
+                          CurrentConditionsDetails(
+                            conditions:
+                                context.watch<GlobalStore>().currentConditions!,
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (_fiveDayForecasts != null) ...[
+                  const SizedBox(width: 24),
+                  Expanded(
+                    flex: 25,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DaysForecast(forecasts: _fiveDayForecasts!),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Update the _buildMobileContent method:
+
+  Widget _buildMobileContent() {
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: AppColors.darkGray,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              final store = Provider.of<GlobalStore>(context, listen: false);
+              await _initializeData(store);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const FavoriteCityWeather(),
+                    if (_forecasts != null) ...[
+                      const SizedBox(height: 32),
+                      TodayForecast(forecasts: _forecasts!),
+                      const SizedBox(height: 32),
+                      if (context.watch<GlobalStore>().currentConditions !=
+                          null)
+                        CurrentConditionsDetails(
+                          conditions:
+                              context.watch<GlobalStore>().currentConditions!,
+                        ),
+                    ],
+                    if (_fiveDayForecasts != null) ...[
+                      const SizedBox(height: 32),
+                      DaysForecast(forecasts: _fiveDayForecasts!),
+                      // Add bottom padding for better scrolling experience
+                      const SizedBox(height: 32),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildContent() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -152,64 +258,39 @@ class _HomePageState extends State<HomePage> {
 
     if (_error != null) {
       return Center(
-        child: Text(
-          _error!,
-          style: const TextStyle(color: Colors.red),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _error!,
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                final store = Provider.of<GlobalStore>(context, listen: false);
+                _initializeData(store);
+              },
+              child: const Text('Spróbuj ponownie'),
+            ),
+          ],
         ),
       );
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 75,
-          child: Column(
-            children: [
-              const FavoriteCityWeather(),
-              if (_forecasts != null) ...[
-                const SizedBox(height: 24),
-                TodayForecast(forecasts: _forecasts!),
-                const SizedBox(height: 24),
-                if (context.watch<GlobalStore>().currentConditions != null)
-                  CurrentConditionsDetails(
-                    conditions: context.watch<GlobalStore>().currentConditions!,
-                  ),
-              ],
-            ],
-          ),
-        ),
-        if (_fiveDayForecasts != null) ...[
-          const SizedBox(width: 24),
-          Expanded(
-            flex: 25,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                DaysForecast(forecasts: _fiveDayForecasts!),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+    return isDesktop ? _buildDesktopContent() : _buildMobileContent();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     return Scaffold(
       backgroundColor: AppColors.darkestGray,
-      body: Row(
-        children: [
-          const AppDrawer(),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: _buildContent(),
-            ),
-          ),
-        ],
-      ),
+      drawer: isDesktop ? null : const ResponsiveDrawer(),
+      body: _buildContent(),
     );
   }
 }

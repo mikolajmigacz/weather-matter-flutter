@@ -5,8 +5,42 @@ import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+class ResponsiveDrawer extends StatelessWidget {
+  const ResponsiveDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const DesktopDrawer();
+  }
+}
+
+class MobileDrawer extends StatelessWidget {
+  const MobileDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context) => IconButton(
+        icon: const Icon(Icons.menu, color: Colors.white),
+        onPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+      ),
+    );
+  }
+}
+
+class DesktopDrawer extends StatelessWidget {
+  const DesktopDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const DrawerContent();
+  }
+}
+
+class DrawerContent extends StatelessWidget {
+  const DrawerContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,21 +80,25 @@ class AppDrawer extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 children: <Widget>[
                   _NavItem(
-                      title: 'Home',
-                      route: AppRoutes.home,
-                      currentRoute: currentRoute),
+                    title: 'Home',
+                    route: AppRoutes.home,
+                    currentRoute: currentRoute,
+                  ),
                   _NavItem(
-                      title: 'Ulubione miasta',
-                      route: AppRoutes.favoriteCities,
-                      currentRoute: currentRoute),
+                    title: 'Ulubione miasta',
+                    route: AppRoutes.favoriteCities,
+                    currentRoute: currentRoute,
+                  ),
                   _NavItem(
-                      title: 'Miasta',
-                      route: AppRoutes.cities,
-                      currentRoute: currentRoute),
+                    title: 'Miasta',
+                    route: AppRoutes.cities,
+                    currentRoute: currentRoute,
+                  ),
                   _NavItem(
-                      title: 'Mapa',
-                      route: AppRoutes.map,
-                      currentRoute: currentRoute),
+                    title: 'Mapa',
+                    route: AppRoutes.map,
+                    currentRoute: currentRoute,
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: ElevatedButton(
@@ -73,7 +111,9 @@ class AppDrawer extends StatelessWidget {
                         backgroundColor: AppColors.teal,
                         foregroundColor: AppColors.lightestGray,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -81,7 +121,9 @@ class AppDrawer extends StatelessWidget {
                       child: const Text(
                         'Wyloguj się',
                         style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -100,8 +142,11 @@ class _NavItem extends StatefulWidget {
   final String route;
   final String? currentRoute;
 
-  const _NavItem(
-      {required this.title, required this.route, required this.currentRoute});
+  const _NavItem({
+    required this.title,
+    required this.route,
+    required this.currentRoute,
+  });
 
   @override
   __NavItemState createState() => __NavItemState();
@@ -125,11 +170,10 @@ class __NavItemState extends State<_NavItem> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: isActive
-                ? Colors.white
-                    .withAlpha((0.2 * 255).toInt()) // Zamiana withOpacity(0.2)
+                ? Colors.white.withAlpha((0.2 * 255).toInt())
                 : (isHovered
                     ? Colors.white.withAlpha((0.1 * 255).toInt())
-                    : null), // Zamiana withOpacity(0.1)
+                    : null),
           ),
           child: Text(
             widget.title,

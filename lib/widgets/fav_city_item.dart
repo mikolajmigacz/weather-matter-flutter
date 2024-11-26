@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.dart';
+import 'package:flutter_dashboard_app/services/city/city_types.dart';
 import 'package:flutter_dashboard_app/services/favoriteCity/favorite_city.dart';
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,7 +9,7 @@ import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:provider/provider.dart';
 
 class FavoriteCityItem extends StatefulWidget {
-  final AutocompleteCity city;
+  final CityDetails city;
 
   const FavoriteCityItem({
     Key? key,
@@ -127,57 +127,69 @@ class _FavoriteCityItemState extends State<FavoriteCityItem> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(
+          child: Column(
             children: [
-              Container(
-                width: 40,
-                height: 30,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: AppColors.darkestGray,
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: _flagUrl != null
-                    ? SvgPicture.network(
-                        _flagUrl!,
-                        fit: BoxFit.cover,
-                        placeholderBuilder: (context) =>
-                            _buildFlagPlaceholder(),
-                      )
-                    : _buildFlagPlaceholder(),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.city.localizedName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: AppColors.darkestGray,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${widget.city.country.name}, ${widget.city.administrativeArea.name}',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 14,
-                      ),
+                    clipBehavior: Clip.hardEdge,
+                    child: _flagUrl != null
+                        ? SvgPicture.network(
+                            _flagUrl!,
+                            fit: BoxFit.cover,
+                            placeholderBuilder: (context) =>
+                                _buildFlagPlaceholder(),
+                          )
+                        : _buildFlagPlaceholder(),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.city.localizedName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${widget.city.country.localizedName}, ${widget.city.region.localizedName}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Lokalizacja: ${widget.city.latitude.toStringAsFixed(4)}, ${widget.city.longitude.toStringAsFixed(4)}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.4),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () => _showDeleteConfirmation(context),
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: _isHovered
-                      ? AppColors.teal
-                      : Colors.white.withOpacity(0.6),
-                  size: 24,
-                ),
+                  ),
+                  IconButton(
+                    onPressed: () => _showDeleteConfirmation(context),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: _isHovered
+                          ? AppColors.teal
+                          : Colors.white.withOpacity(0.6),
+                      size: 24,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -60,6 +60,8 @@ class CityDetails {
   final String englishName;
   final Region region;
   final Country country;
+  final double latitude; // Added
+  final double longitude; // Added
 
   CityDetails({
     required this.key,
@@ -67,15 +69,21 @@ class CityDetails {
     required this.englishName,
     required this.region,
     required this.country,
+    required this.latitude, // Added
+    required this.longitude, // Added
   });
 
   factory CityDetails.fromJson(Map<String, dynamic> json) {
+    final geoPosition = json['GeoPosition'] as Map<String, dynamic>;
+
     return CityDetails(
       key: json['Key'],
       localizedName: json['LocalizedName'],
       englishName: json['EnglishName'],
       region: Region.fromJson(json['Region']),
       country: Country.fromJson(json['Country']),
+      latitude: geoPosition['Latitude'].toDouble(), // Added
+      longitude: geoPosition['Longitude'].toDouble(), // Added
     );
   }
 
@@ -86,6 +94,11 @@ class CityDetails {
       'EnglishName': englishName,
       'Region': region.toJson(),
       'Country': country.toJson(),
+      'GeoPosition': {
+        // Added
+        'Latitude': latitude,
+        'Longitude': longitude,
+      },
     };
   }
 }

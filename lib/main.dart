@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dashboard_app/constants/firestore_constants.dart';
+import 'package:flutter_dashboard_app/services/notification/notification.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -17,12 +18,15 @@ import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:provider/provider.dart'; // Potrzebne do Providera
 import 'firebase_options.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Firebase Messaging
+  await PushNotificationService().initialize();
 
   await dotenv.load(fileName: ".env");
   fetchAndStoreFlags();
@@ -66,6 +70,32 @@ Future<void> fetchAndStoreFlags() async {
   } catch (e) {}
 }
 
+class AuthMiddleware extends StatelessWidget {
+  final Widget child;
+
+  const AuthMiddleware({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GlobalStore>(
+      builder: (context, store, _) {
+        if (store.userId.isEmpty) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        return child;
+      },
+    );
+  }
+}
+
+// Modified MyApp class
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -74,13 +104,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Weather Matter',
       theme: ThemeData(primarySwatch: Colors.blue),
-      // Zdefiniowanie routingu
       initialRoute: AppRoutes.home,
       routes: {
         AppRoutes.home: (context) => const AuthWrapper(),
-        AppRoutes.favoriteCities: (context) => const FavoritePlacesPage(),
-        AppRoutes.cities: (context) => const CitiesPage(),
-        AppRoutes.map: (context) => const MapPage(),
+        AppRoutes.favoriteCities: (context) => const AuthMiddleware(
+              child: FavoritePlacesPage(),
+            ),
+        AppRoutes.cities: (context) => const AuthMiddleware(
+              child: CitiesPage(),
+            ),
+        AppRoutes.map: (context) => const AuthMiddleware(
+              child: MapPage(),
+            ),
       },
     );
   }
@@ -98,16 +133,46 @@ class AuthWrapper extends StatelessWidget {
           User? user = snapshot.data;
           if (user == null) {
             return const AuthScreen();
-          } else {
-            return const HomePage();
           }
-        } else {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+
+          // Check if user data is in GlobalStore
+          return Consumer<GlobalStore>(
+            builder: (context, store, _) {
+              if (store.userId.isEmpty) {
+                // Fetch user data from Firestore
+                FirebaseFirestore.instance
+                    .collection(FirestoreCollections.users.collectionName)
+                    .doc(user.uid)
+                    .get()
+                    .then((userDoc) {
+                  if (userDoc.exists) {
+                    store.setUserData(
+                      userId: user.uid,
+                      login: userDoc[FirestoreCollections.users.login],
+                      name: userDoc[FirestoreCollections.users.name],
+                      favoriteCity:
+                          userDoc[FirestoreCollections.users.favoriteCity],
+                    );
+                  }
+                });
+
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              return const HomePage();
+            },
           );
         }
+
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       },
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dashboard_app/constants/firestore_constants.dart';
+import 'package:flutter_dashboard_app/constants/routes.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:provider/provider.dart'; // Potrzebne do Providera
@@ -24,8 +25,80 @@ class _AuthScreenState extends State<AuthScreen> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  Widget _buildAuthForm() {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
+    return Container(
+      width: isDesktop
+          ? MediaQuery.of(context).size.width * 0.2
+          : MediaQuery.of(context).size.width * 0.85,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.darkGray,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _isLogin ? 'Logowanie' : 'Rejestracja',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.lightestGray,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+                _emailController, 'Email', TextInputType.emailAddress),
+            const SizedBox(height: 12),
+            _buildTextField(
+                _passwordController, 'Hasło', TextInputType.visiblePassword,
+                isPassword: true),
+            if (!_isLogin) ...[
+              const SizedBox(height: 12),
+              _buildTextField(_confirmPasswordController, 'Potwierdź hasło',
+                  TextInputType.visiblePassword,
+                  isPassword: true),
+              const SizedBox(height: 12),
+              _buildTextField(_nameController, 'Imię', TextInputType.text),
+              const SizedBox(height: 12),
+              _buildTextField(
+                  _cityController, 'Ulubione miasto', TextInputType.text),
+            ],
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitForm,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.teal,
+                foregroundColor: AppColors.lightestGray,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+              ),
+              child: Text(_isLogin ? 'Zaloguj się' : 'Zarejestruj się'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() => _isLogin = !_isLogin),
+              child: Text(
+                _isLogin
+                    ? 'Potrzebujesz konta? Zarejestruj się'
+                    : 'Masz konto? Zaloguj się',
+                style: const TextStyle(color: AppColors.teal),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     return Scaffold(
       backgroundColor: AppColors.darkestGray,
       body: SafeArea(
@@ -34,75 +107,11 @@ class _AuthScreenState extends State<AuthScreen> {
             children: [
               Image.asset(
                 'weather.png',
-                width: 400,
-                height: 400,
+                width: isDesktop ? 400 : 200,
+                height: isDesktop ? 400 : 200,
               ),
               Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.darkGray,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _isLogin ? 'Logowanie' : 'Rejestracja',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.lightestGray,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _buildTextField(_emailController, 'Email',
-                            TextInputType.emailAddress),
-                        const SizedBox(height: 12),
-                        _buildTextField(_passwordController, 'Hasło',
-                            TextInputType.visiblePassword,
-                            isPassword: true),
-                        if (!_isLogin) ...[
-                          const SizedBox(height: 12),
-                          _buildTextField(_confirmPasswordController,
-                              'Potwierdź hasło', TextInputType.visiblePassword,
-                              isPassword: true),
-                          const SizedBox(height: 12),
-                          _buildTextField(
-                              _nameController, 'Imię', TextInputType.text),
-                          const SizedBox(height: 12),
-                          _buildTextField(_cityController, 'Ulubione miasto',
-                              TextInputType.text),
-                        ],
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.teal,
-                            foregroundColor: AppColors.lightestGray,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 50, vertical: 12),
-                          ),
-                          child: Text(
-                              _isLogin ? 'Zaloguj się' : 'Zarejestruj się'),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: () => setState(() => _isLogin = !_isLogin),
-                          child: Text(
-                            _isLogin
-                                ? 'Potrzebujesz konta? Zarejestruj się'
-                                : 'Masz konto? Zaloguj się',
-                            style: const TextStyle(color: AppColors.teal),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: _buildAuthForm(),
               ),
             ],
           ),
@@ -114,8 +123,10 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _buildTextField(
       TextEditingController controller, String label, TextInputType inputType,
       {bool isPassword = false}) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     return SizedBox(
-      width: 250,
+      width: isDesktop ? 250 : double.infinity,
       child: TextFormField(
         style: const TextStyle(color: AppColors.lightestGray),
         controller: controller,
@@ -168,42 +179,47 @@ class _AuthScreenState extends State<AuthScreen> {
         final globalStore = Provider.of<GlobalStore>(context, listen: false);
 
         if (_isLogin) {
-          // Logowanie użytkownika
+          // Login user
           userCredential = await _auth.signInWithEmailAndPassword(
             email: _emailController.text,
             password: _passwordController.text,
           );
 
-          // Pobranie ID zalogowanego użytkownika
           final userId = userCredential.user!.uid;
 
-          // Pobranie danych użytkownika z Firestore
+          // Fetch user data from Firestore
           DocumentSnapshot userDoc = await FirebaseFirestore.instance
               .collection(FirestoreCollections.users.collectionName)
               .doc(userId)
               .get();
 
-          // Sprawdzenie, czy dokument istnieje
           if (userDoc.exists) {
-            // Ustawienie danych w GlobalStore
+            // Set data in GlobalStore before navigation
             globalStore.setUserData(
               userId: userId,
               login: userDoc[FirestoreCollections.users.login],
               name: userDoc[FirestoreCollections.users.name],
               favoriteCity: userDoc[FirestoreCollections.users.favoriteCity],
             );
+
+            // Navigate to home page after successful login and data is set
+            if (mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.home,
+                (route) => false,
+              );
+            }
           }
         } else {
-          // Rejestracja użytkownika
+          // Register user
           userCredential = await _auth.createUserWithEmailAndPassword(
             email: _emailController.text,
             password: _passwordController.text,
           );
 
-          // Pobranie ID nowego użytkownika
           final userId = userCredential.user!.uid;
 
-          // Zapisanie dodatkowych danych do Firestore
+          // Save additional data to Firestore
           await FirebaseFirestore.instance
               .collection(FirestoreCollections.users.collectionName)
               .doc(userId)
@@ -214,18 +230,31 @@ class _AuthScreenState extends State<AuthScreen> {
             FirestoreCollections.users.favoriteCity: _cityController.text,
           });
 
-          // Zapisanie wszystkich danych do GlobalStore
+          // Save all data to GlobalStore
           globalStore.setUserData(
             userId: userId,
             login: _emailController.text,
             name: _nameController.text,
             favoriteCity: _cityController.text,
           );
+
+          // Navigate to home page after successful registration
+          if (mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoutes.home,
+              (route) => false,
+            );
+          }
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         print('Error: ${e.toString()}');
       }
     }
