@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dashboard_app/constants/firestore_constants.dart';
-import 'package:flutter_dashboard_app/services/notification/notification.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -24,9 +23,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // Initialize Firebase Messaging
-  await PushNotificationService().initialize();
 
   await dotenv.load(fileName: ".env");
   fetchAndStoreFlags();
