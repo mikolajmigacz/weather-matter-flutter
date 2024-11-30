@@ -4,15 +4,12 @@ import 'package:flutter_dashboard_app/services/autocomplete/autocomplete_types.d
 import 'package:flutter_dashboard_app/services/city/city_service.dart';
 import 'package:flutter_dashboard_app/services/city/city_types.dart';
 import 'package:flutter_dashboard_app/services/favoriteCity/favorite_city_types.dart';
-import 'package:flutter_dashboard_app/services/notification/notification.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 
 class FavoriteCityService {
   final GlobalStore _globalStore;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final CityInfoService _cityInfoService;
-  final PushNotificationService _pushNotificationService =
-      PushNotificationService();
 
   FavoriteCityService(this._globalStore) {
     _cityInfoService = CityInfoService();
@@ -103,12 +100,6 @@ class FavoriteCityService {
 
       _globalStore.setFavoriteCities(updatedCities);
 
-      // Show push notification
-      await _pushNotificationService.showNotification(
-        title: 'Nowe ulubione miasto',
-        body: '${cityDetails.localizedName} zostało dodane do ulubionych',
-      );
-
       return FavoriteCityResponse(success: true, cities: updatedCities);
     } catch (e) {
       return FavoriteCityResponse(
@@ -158,12 +149,6 @@ class FavoriteCityService {
       });
 
       _globalStore.setFavoriteCities(updatedCities);
-
-      // Show push notification
-      await _pushNotificationService.showNotification(
-        title: 'Usunięto miasto z ulubionych',
-        body: '${cityToRemove.localizedName} zostało usunięte z ulubionych',
-      );
 
       return FavoriteCityResponse(success: true, cities: updatedCities);
     } catch (e) {
