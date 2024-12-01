@@ -15,6 +15,43 @@ class FavoriteCityService {
     _cityInfoService = CityInfoService();
   }
 
+  Future<void> _createNotification(
+      String userId, String title, String body) async {
+    try {
+      // Verify user exists
+      final userDoc = await _firestore
+          .collection(FirestoreCollections.users.collectionName)
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) {
+        print('User document not found when creating notification');
+        return;
+      }
+
+      // Verify FCM token exists
+      final fcmToken = userDoc.data()?['fcmToken'];
+      if (fcmToken == null) {
+        print('No FCM token found for user');
+        return;
+      }
+
+      // Create notification
+      final notificationRef = await _firestore.collection('notifications').add({
+        'userId': userId,
+        'title': title,
+        'body': body,
+        'fcmToken': fcmToken, // Add token to notification document
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      print('Created notification: ${notificationRef.id}');
+    } catch (e, stackTrace) {
+      print('Error creating notification: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
   Future<FavoriteCityResponse> getFavoriteCities() async {
     try {
       final userId = _globalStore.userId;
@@ -100,6 +137,12 @@ class FavoriteCityService {
 
       _globalStore.setFavoriteCities(updatedCities);
 
+      await _createNotification(
+        userId,
+        'Dodałeś nowe miasto',
+        'Dodałeś ${cityDetails.localizedName} do ulubionych miast',
+      );
+
       return FavoriteCityResponse(success: true, cities: updatedCities);
     } catch (e) {
       return FavoriteCityResponse(
@@ -149,6 +192,12 @@ class FavoriteCityService {
       });
 
       _globalStore.setFavoriteCities(updatedCities);
+
+      await _createNotification(
+        userId,
+        'Miasto usunięte',
+        'Usunąłeś ${cityToRemove.localizedName} z ulubionych miast',
+      );
 
       return FavoriteCityResponse(success: true, cities: updatedCities);
     } catch (e) {

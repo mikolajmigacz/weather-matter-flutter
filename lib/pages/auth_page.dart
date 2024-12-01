@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -172,6 +173,53 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  Future<String?> _getFCMToken() async {
+    try {
+      // Request notification permissions
+      NotificationSettings settings =
+          await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        // Get the token
+        String? token = await FirebaseMessaging.instance.getToken();
+        return token;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting FCM token: $e');
+      return null;
+    }
+  }
+
+  Future<void> _updateFCMToken(String userId) async {
+    try {
+      String? fcmToken = await _getFCMToken();
+      if (fcmToken != null) {
+        // Update token in Firestore
+        await FirebaseFirestore.instance
+            .collection(FirestoreCollections.users.collectionName)
+            .doc(userId)
+            .update({
+          FirestoreCollections.users.fcmToken: fcmToken,
+        });
+
+        // Update token in GlobalStore
+        Provider.of<GlobalStore>(context, listen: false).setFcmToken(fcmToken);
+
+        // Listen for token refreshes
+        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+          _updateFCMToken(userId);
+        });
+      }
+    } catch (e) {
+      print('Error updating FCM token: $e');
+    }
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -194,15 +242,18 @@ class _AuthScreenState extends State<AuthScreen> {
               .get();
 
           if (userDoc.exists) {
+            // Update FCM token
+            await _updateFCMToken(userId);
+
             // Set data in GlobalStore before navigation
             globalStore.setUserData(
               userId: userId,
               login: userDoc[FirestoreCollections.users.login],
               name: userDoc[FirestoreCollections.users.name],
               favoriteCity: userDoc[FirestoreCollections.users.favoriteCity],
+              fcmToken: userDoc[FirestoreCollections.users.fcmToken],
             );
 
-            // Navigate to home page after successful login and data is set
             if (mounted) {
               Navigator.of(context).pushNamedAndRemoveUntil(
                 AppRoutes.home,
@@ -218,6 +269,7 @@ class _AuthScreenState extends State<AuthScreen> {
           );
 
           final userId = userCredential.user!.uid;
+          final fcmToken = await _getFCMToken();
 
           // Save additional data to Firestore
           await FirebaseFirestore.instance
@@ -228,6 +280,7 @@ class _AuthScreenState extends State<AuthScreen> {
             FirestoreCollections.users.login: _emailController.text,
             FirestoreCollections.users.name: _nameController.text,
             FirestoreCollections.users.favoriteCity: _cityController.text,
+            FirestoreCollections.users.fcmToken: fcmToken,
           });
 
           // Save all data to GlobalStore
@@ -236,9 +289,14 @@ class _AuthScreenState extends State<AuthScreen> {
             login: _emailController.text,
             name: _nameController.text,
             favoriteCity: _cityController.text,
+            fcmToken: fcmToken,
           );
 
-          // Navigate to home page after successful registration
+          // Set up token refresh listener
+          FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+            _updateFCMToken(userId);
+          });
+
           if (mounted) {
             Navigator.of(context).pushNamedAndRemoveUntil(
               AppRoutes.home,

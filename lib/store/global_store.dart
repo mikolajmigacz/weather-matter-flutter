@@ -8,6 +8,7 @@ class GlobalStore with ChangeNotifier {
   String _login = "";
   String _name = "";
   String _favoriteCity = "";
+  String _fcmToken = "";
   CityDetails? _favoriteCityDetails;
   CurrentConditions? _currentConditions;
   AutocompleteCity? _selectedCity;
@@ -24,6 +25,13 @@ class GlobalStore with ChangeNotifier {
   AutocompleteCity? get selectedCity => _selectedCity;
   CurrentConditions? get selectedCityConditions => _selectedCityConditions;
   List<CityDetails> get favoriteCities => _favoriteCities;
+
+  String get fcmToken => _fcmToken;
+
+  void setFcmToken(String token) {
+    _fcmToken = token;
+    notifyListeners();
+  }
 
   // Setters
   void setUserId(String userId) {
@@ -63,11 +71,13 @@ class GlobalStore with ChangeNotifier {
     required String login,
     required String name,
     required String favoriteCity,
+    String? fcmToken,
   }) {
     _userId = userId;
     _login = login;
     _name = name;
     _favoriteCity = favoriteCity;
+    if (fcmToken != null) _fcmToken = fcmToken;
     notifyListeners();
   }
 
@@ -76,6 +86,7 @@ class GlobalStore with ChangeNotifier {
     _login = "";
     _name = "";
     _favoriteCity = "";
+    _fcmToken = "";
     _favoriteCityDetails = null;
     _currentConditions = null;
     _selectedCity = null;

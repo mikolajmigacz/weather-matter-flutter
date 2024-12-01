@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dashboard_app/constants/firestore_constants.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -24,6 +25,9 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialize Firebase Messaging
+  await initializeFirebaseMessaging();
+
   await dotenv.load(fileName: ".env");
   fetchAndStoreFlags();
 
@@ -33,6 +37,66 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   );
+}
+
+Future<void> initializeFirebaseMessaging() async {
+  final messaging = FirebaseMessaging.instance;
+
+  try {
+    // Request permission with better error handling
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false, // Try with provisional permissions
+    );
+
+    print('Notification permission status: ${settings.authorizationStatus}');
+
+    switch (settings.authorizationStatus) {
+      case AuthorizationStatus.authorized:
+        print('User granted permission');
+        await _initializeMessaging(messaging);
+        break;
+      case AuthorizationStatus.denied:
+        print('User denied permission - will need to request again');
+        // Maybe show a dialog explaining why notifications are important
+        break;
+      case AuthorizationStatus.provisional:
+        print('User granted provisional permission');
+        await _initializeMessaging(messaging);
+        break;
+      default:
+        print('Unknown permission status');
+    }
+  } catch (e) {
+    print('Error initializing messaging: $e');
+  }
+}
+
+Future<void> _initializeMessaging(FirebaseMessaging messaging) async {
+  try {
+    String? token = await messaging.getToken(
+      vapidKey:
+          'BIMl-niEXDFj0b8v_kWFsSjQB4Ltx7Xrhw7zjG0NeoYSAh-DaN_OR53iHfVVSAZEXwWtlF2ssZUc5I9krdevfkI', // Add your VAPID key here
+    );
+    print('FCM Token: $token');
+
+    if (token != null) {
+      // Store token in GlobalStore and Firestore
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        await FirebaseFirestore.instance
+            .collection(FirestoreCollections.users.collectionName)
+            .doc(userId)
+            .update({
+          'fcmToken': token,
+        });
+      }
+    }
+  } catch (e) {
+    print('Error getting FCM token: $e');
+  }
 }
 
 Future<void> fetchAndStoreFlags() async {
