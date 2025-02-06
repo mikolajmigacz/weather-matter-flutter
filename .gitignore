@@ -48,3 +48,4 @@ app.*.map.json
 # project data
 /firebase.json
 /lib/constants/firestore_constants.dart
+lib/firebase_options.dart
