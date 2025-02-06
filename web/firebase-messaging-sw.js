@@ -2,12 +2,12 @@ importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
 importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js");
 
 firebase.initializeApp({
-  apiKey: "AIzaSyBsayb6KcpiCCYeB7Bh4O2MZWgiXyDHP74",
-  authDomain: "fav-places-4b3cd.firebaseapp.com",
-  projectId: "fav-places-4b3cd",
-  storageBucket: "fav-places-4b3cd.appspot.com",
-  messagingSenderId: "205916219460",
-  appId: "1:205916219460:web:8fe2c43857b3d1670bf411"
+  apiKey: dotenv.env['F_API_KEY'],
+  authDomain: dotenv.env['F_AUTH_DOMAIN'],
+  projectId: dotenv.env['F_PROJECT_ID'],
+  storageBucket: dotenv.env['F_STORAGE_BUCKET'],
+  messagingSenderId: dotenv.env['F_MESSAGING_SENDER_ID'],
+  appId: dotenv.env['F_APP_ID']
 });
 
 const messaging = firebase.messaging();

@@ -8,6 +8,10 @@ import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 import 'package:provider/provider.dart'; // Potrzebne do Providera
 
+/// Authentication screen that allows users to log in or register.
+///
+/// Handles authentication using Firebase Authentication and stores
+/// additional user data in Firestore.
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -195,24 +199,31 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _updateFCMToken(String userId) async {
+  Future<void> _updateFCMToken(String userId, BuildContext context) async {
+    if (!context.mounted) return;
+
     try {
       String? fcmToken = await _getFCMToken();
-      if (fcmToken != null) {
+      if (fcmToken != null && context.mounted) {
         // Update token in Firestore
         await FirebaseFirestore.instance
             .collection(FirestoreCollections.users.collectionName)
             .doc(userId)
             .update({
-          FirestoreCollections.users.fcmToken: fcmToken,
+          'fcmToken': fcmToken,
         });
 
         // Update token in GlobalStore
-        Provider.of<GlobalStore>(context, listen: false).setFcmToken(fcmToken);
+        if (context.mounted) {
+          Provider.of<GlobalStore>(context, listen: false)
+              .setFcmToken(fcmToken);
+        }
 
         // Listen for token refreshes
         FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-          _updateFCMToken(userId);
+          if (context.mounted) {
+            _updateFCMToken(userId, context);
+          }
         });
       }
     } catch (e) {
@@ -243,7 +254,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
           if (userDoc.exists) {
             // Update FCM token
-            await _updateFCMToken(userId);
+            await _updateFCMToken(userId, context);
 
             // Set data in GlobalStore before navigation
             globalStore.setUserData(
@@ -294,7 +305,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
           // Set up token refresh listener
           FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-            _updateFCMToken(userId);
+            _updateFCMToken(userId, context);
           });
 
           if (mounted) {

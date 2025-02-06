@@ -11,11 +11,11 @@ class CitySearchItem extends StatefulWidget {
   final bool isSelected;
 
   const CitySearchItem({
-    Key? key,
+    super.key,
     required this.city,
     required this.onTap,
     this.isSelected = false,
-  }) : super(key: key);
+  });
 
   @override
   State<CitySearchItem> createState() => _CitySearchItemState();

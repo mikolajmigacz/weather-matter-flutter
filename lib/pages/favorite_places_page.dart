@@ -5,6 +5,11 @@ import 'package:flutter_dashboard_app/widgets/app_drawer.dart';
 import 'package:flutter_dashboard_app/widgets/fav_city_item.dart';
 import 'package:provider/provider.dart';
 
+/// A screen that displays the user's favorite cities.
+///
+/// This page allows users to view their favorite cities, dynamically updating the list
+/// based on the stored preferences. It adapts to both desktop and mobile layouts,
+/// displaying a list of saved cities or an empty state if no favorites exist.
 class FavoritePlacesPage extends StatelessWidget {
   const FavoritePlacesPage({super.key});
 

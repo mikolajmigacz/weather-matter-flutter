@@ -16,6 +16,12 @@ import 'package:flutter_dashboard_app/widgets/fav_city_weather.dart';
 import 'package:flutter_dashboard_app/widgets/today_forecast.dart';
 import 'package:provider/provider.dart';
 
+/// The home screen displaying current weather conditions and forecasts.
+///
+/// This page provides users with real-time weather updates for their favorite city,
+/// including current conditions, 12-hour, and 5-day forecasts. It integrates various
+/// weather services and supports both desktop and mobile layouts.
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 

@@ -10,6 +10,10 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 
+/// A screen that allows users to search for cities and view current weather conditions.
+///
+/// This page integrates an autocomplete service for city search, allowing users to select a city
+/// and view real-time weather conditions. The UI adapts for both desktop and mobile layouts.
 class CitiesPage extends StatefulWidget {
   const CitiesPage({super.key});
 

@@ -7,8 +7,6 @@ class AutocompleteService {
   final String _baseUrl =
       'http://dataservice.accuweather.com/locations/v1/cities/autocomplete';
 
-  AutocompleteService();
-
   Future<List<AutocompleteCity>> fetchAutocomplete(String query) async {
     try {
       final apiKey = dotenv.env['ACCU_WEATHER_KEY'];

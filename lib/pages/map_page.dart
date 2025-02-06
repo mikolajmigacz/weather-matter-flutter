@@ -8,6 +8,12 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dashboard_app/store/global_store.dart';
 import 'package:flutter_dashboard_app/services/city/city_types.dart';
 
+/// A map screen displaying the user's location and favorite cities.
+///
+/// This page provides an interactive map using OpenStreetMap, allowing users
+/// to view their current location, favorite cities, and interact with markers.
+/// It supports both desktop and mobile layouts, ensuring accessibility across devices.
+
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
 
@@ -288,15 +294,6 @@ class _MapPageState extends State<MapPage> {
     // Add padding to bounds
     final latPadding =
         (bounds.northEast.latitude - bounds.southWest.latitude) * 0.1;
-    final lngPadding =
-        (bounds.northEast.longitude - bounds.southWest.longitude) * 0.1;
-
-    final paddedBounds = LatLngBounds(
-      LatLng(bounds.southWest.latitude - latPadding,
-          bounds.southWest.longitude - lngPadding),
-      LatLng(bounds.northEast.latitude + latPadding,
-          bounds.northEast.longitude + lngPadding),
-    );
   }
 
   Widget _buildContent() {

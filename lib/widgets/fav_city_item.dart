@@ -12,9 +12,9 @@ class FavoriteCityItem extends StatefulWidget {
   final CityDetails city;
 
   const FavoriteCityItem({
-    Key? key,
+    super.key,
     required this.city,
-  }) : super(key: key);
+  });
 
   @override
   State<FavoriteCityItem> createState() => _FavoriteCityItemState();

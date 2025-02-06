@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dashboard_app/constants/firestore_constants.dart';
+import 'package:flutter_dashboard_app/widgets/offline_handler.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -25,9 +26,16 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize Firebase Messaging
-  await initializeFirebaseMessaging();
+  // // Enable offline persistence
+  // await FirebaseFirestore.instance.enablePersistence(
+  //   const PersistenceSettings(synchronizeTabs: true),
+  // );
+  // FirebaseFirestore.instance.settings = const Settings(
+  //   cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  //   persistenceEnabled: true,
+  // );
 
+  await initializeFirebaseMessaging();
   await dotenv.load(fileName: ".env");
   fetchAndStoreFlags();
 
@@ -77,10 +85,8 @@ Future<void> initializeFirebaseMessaging() async {
 Future<void> _initializeMessaging(FirebaseMessaging messaging) async {
   try {
     String? token = await messaging.getToken(
-      vapidKey:
-          'BIMl-niEXDFj0b8v_kWFsSjQB4Ltx7Xrhw7zjG0NeoYSAh-DaN_OR53iHfVVSAZEXwWtlF2ssZUc5I9krdevfkI', // Add your VAPID key here
+      vapidKey: dotenv.env['VAPID_KEY'],
     );
-    print('FCM Token: $token');
 
     if (token != null) {
       // Store token in GlobalStore and Firestore
@@ -164,17 +170,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Weather Matter',
       theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.home, // Use initialRoute instead of home
       routes: {
-        AppRoutes.home: (context) => const AuthWrapper(),
-        AppRoutes.favoriteCities: (context) => const AuthMiddleware(
-              child: FavoritePlacesPage(),
+        AppRoutes.home: (context) => const OfflineHandler(child: AuthWrapper()),
+        AppRoutes.favoriteCities: (context) => const OfflineHandler(
+              child: AuthMiddleware(
+                child: FavoritePlacesPage(),
+              ),
             ),
-        AppRoutes.cities: (context) => const AuthMiddleware(
-              child: CitiesPage(),
+        AppRoutes.cities: (context) => const OfflineHandler(
+              child: AuthMiddleware(
+                child: CitiesPage(),
+              ),
             ),
-        AppRoutes.map: (context) => const AuthMiddleware(
-              child: MapPage(),
+        AppRoutes.map: (context) => const OfflineHandler(
+              child: AuthMiddleware(
+                child: MapPage(),
+              ),
             ),
       },
     );

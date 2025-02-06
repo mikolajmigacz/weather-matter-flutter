@@ -2,14 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dashboard_app/services/fiveDaysForecast/five_days_forecast_types.dart';
 import 'package:flutter_dashboard_app/theme/app_colors.dart';
 
+/// A widget that displays a 7-day weather forecast.
+///
+/// The [DaysForecast] widget takes a list of [DayForecast] objects
+/// and renders them in a scrollable list with day names, weather icons,
+/// temperature ranges, and descriptive phrases.
+///
+/// This widget adapts its size based on the screen width
+/// (desktop or mobile layout).
 class DaysForecast extends StatelessWidget {
+  /// A list of daily weather forecasts to display.
   final List<DayForecast> forecasts;
 
+  /// Creates a [DaysForecast] widget.
+  ///
+  /// The [forecasts] parameter must not be null and must contain a list of
+  /// [DayForecast] objects.
   const DaysForecast({
     super.key,
     required this.forecasts,
   });
 
+  /// Formats a [DateTime] object to a short weekday name.
+  ///
+  /// Returns the name of the day in Polish, e.g., "Pon" for Monday.
   String _formatDate(DateTime date) {
     final days = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Niedz'];
     return days[date.weekday % 7];
@@ -17,6 +33,7 @@ class DaysForecast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine if the screen is in desktop mode based on its width.
     final isDesktop = MediaQuery.of(context).size.width > 768;
 
     return Container(
@@ -30,6 +47,7 @@ class DaysForecast extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Title of the forecast section.
           const Text(
             'Prognoza 7-dniowa',
             style: TextStyle(
@@ -39,6 +57,7 @@ class DaysForecast extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
+          // List of daily weather forecasts.
           Expanded(
             child: ListView.separated(
               itemCount: forecasts.length,
@@ -54,6 +73,7 @@ class DaysForecast extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Display the short day name.
                       SizedBox(
                         width: 40,
                         child: Text(
@@ -65,12 +85,14 @@ class DaysForecast extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
+                      // Weather icon from a network URL.
                       Image.network(
                         'https://apidev.accuweather.com/developers/Media/Default/WeatherIcons/${forecast.icon < 10 ? '0' : ''}${forecast.icon}-s.png',
                         width: 24,
                         height: 24,
                       ),
                       const SizedBox(width: 12),
+                      // Weather description (e.g., "Sunny").
                       Expanded(
                         child: Text(
                           forecast.iconPhrase,
@@ -81,6 +103,7 @@ class DaysForecast extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 24),
+                      // Temperature range: maximum and minimum.
                       RichText(
                         text: TextSpan(
                           children: [
